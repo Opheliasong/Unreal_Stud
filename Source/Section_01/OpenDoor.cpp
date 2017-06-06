@@ -21,6 +21,9 @@ void UOpenDoor::BeginPlay()
 	Super::BeginPlay();
 
 	ActorThatOpens = GetWorld()->GetFirstPlayerController()->GetPawn();
+	Owner = GetOwner();
+	OpenAngle = 10.0f;
+	CloseAngle = 90.0f;
 }
 
 
@@ -32,9 +35,11 @@ void UOpenDoor::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompon
 	// 트리거 볼륨에 충돌하면, 해당 메서드를 실행
 	if (PressurePlate->IsOverlappingActor(ActorThatOpens))
 	{
-		OpenDoor();
+		OpenDoor();		
+		LastDoorOpenTime = GetWorld()->GetTimeSeconds();
 	}	
-	else
+	
+	if (GetWorld()->GetTimeSeconds() - LastDoorOpenTime > DoorCloseDelay)
 	{
 		CloseDoor();
 	}
@@ -43,24 +48,12 @@ void UOpenDoor::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompon
 
 void UOpenDoor::OpenDoor()
 {
-	//1. 오너 엑터를 가져온다
-	AActor* Owner = GetOwner();
-
-	//2. 로테이터를 회전할 양만큼 설정하고
-	FRotator NewRotation = FRotator(0.f, 10.f, 0.f);
-
-	//3. 문의 회전을 설정한다.
-	Owner->SetActorRotation(NewRotation);
+	//문의 회전을 설정한다.
+	Owner->SetActorRotation(FRotator(0.f, OpenAngle, 0.f));
 }
 
 void UOpenDoor::CloseDoor()
 {
-	//1. 오너 엑터를 가져온다
-	AActor* Owner = GetOwner();
-
-	//2. 로테이터를 회전할 양만큼 설정하고
-	FRotator NewRotation = FRotator(0.f, 90.f, 0.f);
-
-	//3. 문의 회전을 설정한다.
-	Owner->SetActorRotation(NewRotation);
+	//문의 회전을 설정한다.
+	Owner->SetActorRotation(FRotator(0.f, CloseAngle, 0.f));
 }
