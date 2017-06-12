@@ -11,7 +11,6 @@ UGrabber::UGrabber()
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
-	//bWantsBeginPlay = true;	
 }
 
 
@@ -30,7 +29,7 @@ void UGrabber::FindPhysicsHandleComponent()
 	//Physics Handle을 찾는다.
 	PhysicsHandle = GetOwner()->FindComponentByClass<UPhysicsHandleComponent>();
 
-	if (!PhysicsHandle)
+	if (PhysicsHandle != nullptr)
 	{
 		UE_LOG(LogTemp, Error, TEXT("%s missing physics handle component"), *GetOwner()->GetName());
 	}
@@ -41,7 +40,7 @@ void UGrabber::SetupInputComponent()
 {
 	//Input Component를 찾는다.
 	InputComponent = GetOwner()->FindComponentByClass<UInputComponent>();
-	if (!InputComponent)
+	if (InputComponent == nullptr)
 	{
 		UE_LOG(LogTemp, Error, TEXT("%s missing Input component"), *GetOwner()->GetName());
 	}
@@ -55,20 +54,6 @@ void UGrabber::SetupInputComponent()
 
 const FHitResult UGrabber::GetFirstPhysicsBodyInReach()
 {
-	// 플레이어의 시점을 틱단위로 가져온다
-	FVector PlayerViewPointLocation;
-	FRotator PlayerViewPointRotation;
-	GetWorld()->GetFirstPlayerController()->GetPlayerViewPoint(
-		OUT PlayerViewPointLocation,
-		OUT PlayerViewPointRotation);
-
-
-	//UE_LOG(LogTemp, Warning, TEXT("Location: %s / Rotation: %s"),
-	//	*PlayerViewPointLocation.ToString(),
-	//	*PlayerViewPointRotation.ToString());
-
-	FVector LineTraceEnd = PlayerViewPointLocation + PlayerViewPointRotation.Vector() * Reach;
-
 	// 레이캐스트의 결과가 일정 거리보다 짧으면
 	FHitResult Hit;
 
@@ -77,8 +62,8 @@ const FHitResult UGrabber::GetFirstPhysicsBodyInReach()
 
 	GetWorld()->LineTraceSingleByObjectType(
 		OUT Hit,
-		PlayerViewPointLocation,
-		LineTraceEnd,
+		GetReachLineStart(),
+		GetReachLineEnd(),
 		FCollisionObjectQueryParams(ECollisionChannel::ECC_PhysicsBody),
 		TraceParmeters
 	);
@@ -95,7 +80,7 @@ void UGrabber::Grab()
 	//해당 오브젝트를 보고 있는것으로 판정
 	AActor* ActorHit = HitResult.GetActor();
 
-	if (ActorHit)
+	if (ActorHit != nullptr)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Line trace Hit: %s"), *(ActorHit->GetName()));
 		UPrimitiveComponent* PC = Cast<UPrimitiveComponent>(HitResult.GetActor()->GetRootComponent());
@@ -125,18 +110,31 @@ void UGrabber::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompone
 	// 만약 물리적 오브젝트를 컨트롤 하고 있을 경우
 	// 컨트롤 하는 오브젝트는 우리의 움직임에 따라 같이 움직인다.
 
-	if (PhysicsHandle->GrabbedComponent)
-	{
-		FVector PlayerViewPointLocation;
-		FRotator PlayerViewPointRotation;
-		GetWorld()->GetFirstPlayerController()->GetPlayerViewPoint(
-			OUT PlayerViewPointLocation,
-			OUT PlayerViewPointRotation);
-
-		FVector LineTraceEnd = PlayerViewPointLocation + PlayerViewPointRotation.Vector() * Reach;
-
+	if (PhysicsHandle->GrabbedComponent != nullptr)
+	{		
 		//잡고 있는 오브젝트를 움직인다.
-		PhysicsHandle->SetTargetLocation(LineTraceEnd);
+		PhysicsHandle->SetTargetLocation(GetReachLineEnd());
 	}
 }
 
+FVector UGrabber::GetReachLineStart()
+{
+	FVector PlayerViewPointLocation;
+	FRotator PlayerViewPointRotation;
+	GetWorld()->GetFirstPlayerController()->GetPlayerViewPoint(
+		OUT PlayerViewPointLocation,
+		OUT PlayerViewPointRotation);
+
+	return PlayerViewPointLocation;
+}
+
+FVector UGrabber::GetReachLineEnd()
+{
+	FVector PlayerViewPointLocation;
+	FRotator PlayerViewPointRotation;
+	GetWorld()->GetFirstPlayerController()->GetPlayerViewPoint(
+		OUT PlayerViewPointLocation,
+		OUT PlayerViewPointRotation);
+
+	return PlayerViewPointLocation + PlayerViewPointRotation.Vector() * Reach;
+}

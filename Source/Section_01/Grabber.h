@@ -37,4 +37,6 @@ private:
 	//
 	void Grab();
 	void Release();
+	FVector GetReachLineEnd();
+	FVector GetReachLineStart();
 };
