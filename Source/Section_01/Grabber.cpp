@@ -40,9 +40,11 @@ void UGrabber::SetupInputComponent()
 {
 	//Input Component를 찾는다.
 	InputComponent = GetOwner()->FindComponentByClass<UInputComponent>();
+
 	if (InputComponent == nullptr)
 	{
 		UE_LOG(LogTemp, Error, TEXT("%s missing Input component"), *GetOwner()->GetName());
+		return;
 	}
 	else
 	{
@@ -73,6 +75,10 @@ const FHitResult UGrabber::GetFirstPhysicsBodyInReach()
 void UGrabber::Grab()
 {
 	//UE_LOG(LogTemp, Warning, TEXT("Grab on"));
+	if (PhysicsHandle == nullptr)
+	{
+		return;
+	}
 
 	// Line trace의 Actor들의 Phyisics collision 채널을 설정을 시도하고, 찾는다.
 	FHitResult HitResult = GetFirstPhysicsBodyInReach();
@@ -98,6 +104,11 @@ void UGrabber::Release()
 {
 	//UE_LOG(LogTemp, Warning, TEXT("Grab release"));
 
+	if (PhysicsHandle == nullptr)
+	{
+		return;
+	}
+
 	PhysicsHandle->ReleaseComponent();	
 }
 
@@ -106,6 +117,11 @@ void UGrabber::Release()
 void UGrabber::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+
+	if (PhysicsHandle == nullptr)
+	{
+		return;
+	}
 
 	// 만약 물리적 오브젝트를 컨트롤 하고 있을 경우
 	// 컨트롤 하는 오브젝트는 우리의 움직임에 따라 같이 움직인다.

@@ -33,7 +33,8 @@ void UOpenDoor::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompon
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	// 트리거 볼륨에 충돌하면, 해당 메서드를 실행
-	if (PressurePlate->IsOverlappingActor(ActorThatOpens))
+	//
+	if (GetTotalMassOfActorOnPlate() > TriggerMass)
 	{
 		OpenDoor();		
 		LastDoorOpenTime = GetWorld()->GetTimeSeconds();
@@ -56,4 +57,28 @@ void UOpenDoor::CloseDoor()
 {
 	//문의 회전을 설정한다.
 	Owner->SetActorRotation(FRotator(0.f, CloseAngle, 0.f));
+}
+
+float UOpenDoor::GetTotalMassOfActorOnPlate()
+{
+	float totMass = 0.0f;
+
+	TArray<AActor*> OverlaapingActors;
+
+	if (PressurePlate == nullptr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Not found Pressure plate"));
+		return 0.f;
+	}
+
+	PressurePlate->GetOverlappingActors(OUT OverlaapingActors);
+
+	//Range base for loop (since c++ 11)
+	for (auto& iter : OverlaapingActors)
+	{
+		totMass += iter->FindComponentByClass<UPrimitiveComponent>()->GetMass();
+		UE_LOG(LogTemp, Warning, TEXT("%s on Pressure plate"), *iter->GetName());
+	}
+	UE_LOG(LogTemp, Warning, TEXT("%f tot mass"), totMass);
+	return totMass;
 }

@@ -19,6 +19,9 @@ protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
+	//트리거 상의 무게 총합을 리턴
+	float GetTotalMassOfActorOnPlate();
+
 public:	
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
@@ -34,7 +37,7 @@ private:
 	float CloseAngle;
 	
 	UPROPERTY(EditAnywhere)
-	ATriggerVolume* PressurePlate;
+	ATriggerVolume* PressurePlate = nullptr;
 
 	UPROPERTY(EditAnywhere)
 	float DoorCloseDelay = 1.0f;
@@ -43,4 +46,7 @@ private:
 
 	AActor* ActorThatOpens;
 	AActor* Owner;
+
+	UPROPERTY(VisibleAnywhere)
+	float TriggerMass = 50.0f;
 };
