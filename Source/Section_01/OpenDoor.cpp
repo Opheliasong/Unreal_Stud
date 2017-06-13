@@ -22,10 +22,7 @@ void UOpenDoor::BeginPlay()
 
 	ActorThatOpens = GetWorld()->GetFirstPlayerController()->GetPawn();
 	Owner = GetOwner();
-	OpenAngle = 10.0f;
-	CloseAngle = 90.0f;
 }
-
 
 // Called every frame
 void UOpenDoor::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -36,27 +33,12 @@ void UOpenDoor::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompon
 	//
 	if (GetTotalMassOfActorOnPlate() > TriggerMass)
 	{
-		OpenDoor();		
-		LastDoorOpenTime = GetWorld()->GetTimeSeconds();
-	}	
-	
-	if (GetWorld()->GetTimeSeconds() - LastDoorOpenTime > DoorCloseDelay)
-	{
-		CloseDoor();
+		OnOpen.Broadcast();
 	}
-}
-
-
-void UOpenDoor::OpenDoor()
-{
-	//문의 회전을 설정한다.
-	Owner->SetActorRotation(FRotator(0.f, OpenAngle, 0.f));
-}
-
-void UOpenDoor::CloseDoor()
-{
-	//문의 회전을 설정한다.
-	Owner->SetActorRotation(FRotator(0.f, CloseAngle, 0.f));
+	else
+	{
+		OnClose.Broadcast();
+	}
 }
 
 float UOpenDoor::GetTotalMassOfActorOnPlate()
